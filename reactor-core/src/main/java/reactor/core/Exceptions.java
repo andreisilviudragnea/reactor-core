@@ -51,6 +51,10 @@ public abstract class Exceptions {
 	 * exceptions together as suppressed exceptions under a root Throwable with
 	 * the {@code "Multiple exceptions"} message, if the atomic reference already holds
 	 * one. This is short-circuited if the reference contains {@link #TERMINATED}.
+	 * <p>
+	 * Since composite exceptions and traceback exceptions share the same underlying mechanism
+	 * of suppressed exceptions, a traceback could be made part of a composite exception.
+	 * Use {@link #isTraceback(Throwable)} to filter out such elements in a composite if needed.
 	 *
 	 * @param <T> the parent instance type
 	 * @param field the target field updater
@@ -97,6 +101,10 @@ public abstract class Exceptions {
 	 * will correctly unwrap these to a {@link List} of the suppressed exceptions. Note
 	 * that is will also be consistent in producing a List for other types of exceptions
 	 * by putting the input inside a single-element List.
+	 * <p>
+	 * Since composite exceptions and traceback exceptions share the same underlying mechanism
+	 * of suppressed exceptions, a traceback could be made part of a composite exception.
+	 * Use {@link #isTraceback(Throwable)} to filter out such elements in a composite if needed.
 	 *
 	 * @param throwables the exceptions to wrap into a composite
 	 * @return a composite exception with a standard message, and the given throwables as
@@ -117,11 +125,15 @@ public abstract class Exceptions {
 
 	/**
 	 * Create a composite exception that wraps the given {@link Throwable Throwable(s)},
-	 * as suppressed exceptions. Instances create by this method can be detected using the
+	 * as suppressed exceptions. Instances created by this method can be detected using the
 	 * {@link #isMultiple(Throwable)} check. The {@link #unwrapMultiple(Throwable)} method
 	 * will correctly unwrap these to a {@link List} of the suppressed exceptions. Note
 	 * that is will also be consistent in producing a List for other types of exceptions
 	 * by putting the input inside a single-element List.
+	 * <p>
+	 * Since composite exceptions and traceback exceptions share the same underlying mechanism
+	 * of suppressed exceptions, a traceback could be made part of a composite exception.
+	 * Use {@link #isTraceback(Throwable)} to filter out such elements in a composite if needed.
 	 *
 	 * @param throwables the exceptions to wrap into a composite
 	 * @return a composite exception with a standard message, and the given throwables as
@@ -299,12 +311,12 @@ public abstract class Exceptions {
 	}
 
 	/**
-	 * Check a {@link Throwable} to see if it is a backtrace, as created by the checkpoint operator or debug utilities.
+	 * Check a {@link Throwable} to see if it is a traceback, as created by the checkpoint operator or debug utilities.
 	 *
 	 * @param t the {@link Throwable} to check, {@literal null} always yields {@literal false}
-	 * @return true if the Throwable is a backtrace, false otherwise
+	 * @return true if the Throwable is a traceback, false otherwise
 	 */
-	public static boolean isBacktrace(@Nullable Throwable t) {
+	public static boolean isTraceback(@Nullable Throwable t) {
 		if (t == null) {
 			return false;
 		}
@@ -421,6 +433,10 @@ public abstract class Exceptions {
 	 * {@link #multiple(Throwable...)}, in which case the list contains the exceptions
 	 * wrapped as suppressed exceptions in the composite. In any other case, the list
 	 * only contains the input Throwable (or is empty in case of null input).
+	 * <p>
+	 * Since composite exceptions and traceback exceptions share the same underlying mechanism
+	 * of suppressed exceptions, a traceback could be made part of a composite exception.
+	 * Use {@link #isTraceback(Throwable)} to filter out such elements in a composite if needed.
 	 *
 	 * @param potentialMultiple the {@link Throwable} to unwrap if multiple
 	 * @return a {@link List} of the exceptions suppressed by the {@link Throwable} if

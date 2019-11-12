@@ -482,7 +482,7 @@ public class ExceptionsTest {
 	}
 
 	@Test
-	public void unwrapMultipleWithFilter() {
+	public void unwrapMultipleWithTracebackAndFilterItOut() {
 		Mono<String> errorMono1 = Mono.error(new IllegalStateException("expected1"));
 		Mono<String> errorMono2 = Mono.error(new IllegalStateException("expected2"));
 		Mono<Throwable> mono = Mono.zipDelayError(errorMono1, errorMono2)
@@ -493,9 +493,9 @@ public class ExceptionsTest {
 
 		List<Throwable> exceptions = Exceptions.unwrapMultiple(test);
 
-		assertThat(exceptions).as("unfiltered composite has backtrace").hasSize(3);
-		assertThat(exceptions.stream().filter(e -> !Exceptions.isBacktrace(e)))
-				.as("filter out backtraces")
+		assertThat(exceptions).as("unfiltered composite has traceback").hasSize(3);
+		assertThat(exceptions.stream().filter(e -> !Exceptions.isTraceback(e)))
+				.as("filter out tracebacks")
 				.hasSize(2)
 				.allMatch(e -> e instanceof IllegalStateException, "is IllegalStateException");
 	}
