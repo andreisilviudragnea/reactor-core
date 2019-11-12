@@ -489,14 +489,15 @@ public class ExceptionsTest {
 		                           .checkpoint("checkpoint")
 		                           .<Throwable>map(tuple -> new IllegalStateException("should have failed: " + tuple))
 		                           .onErrorResume(Mono::just);
-		Throwable test = mono.block();
+		Throwable compositeException = mono.block();
 
-		List<Throwable> exceptions = Exceptions.unwrapMultiple(test);
+		List<Throwable> exceptions = Exceptions.unwrapMultiple(compositeException);
 
-		assertThat(exceptions).as("unfiltered composite has traceback").hasSize(3);
-		assertThat(exceptions.stream().filter(e -> !Exceptions.isTraceback(e)))
-				.as("filter out tracebacks")
-				.hasSize(2)
-				.allMatch(e -> e instanceof IllegalStateException, "is IllegalStateException");
+		assertThat(exceptions).as("unfiltered composite has traceback")
+		                      .hasSize(3)
+		                      .filteredOn(e -> !Exceptions.isTraceback(e))
+		                      .as("filtered out tracebacks")
+		                      .hasSize(2)
+		                      .hasOnlyElementsOfType(IllegalStateException.class);
 	}
 }
