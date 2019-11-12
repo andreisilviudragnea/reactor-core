@@ -299,6 +299,20 @@ public abstract class Exceptions {
 	}
 
 	/**
+	 * Check a {@link Throwable} to see if it is a backtrace, as created by the checkpoint operator or debug utilities.
+	 *
+	 * @param t the {@link Throwable} to check, {@literal null} always yields {@literal false}
+	 * @return true if the Throwable is a backtrace, false otherwise
+	 */
+	public static boolean isBacktrace(@Nullable Throwable t) {
+		if (t == null) {
+			return false;
+		}
+		//FIXME maybe add an interface here for detection purposes
+		return "reactor.core.publisher.FluxOnAssembly.OnAssemblyException".equals(t.getClass().getCanonicalName());
+	}
+
+	/**
 	 * @param elements the invalid requested demand
 	 *
 	 * @return a new {@link IllegalArgumentException} with a cause message abiding to
