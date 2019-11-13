@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.Predicate;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -482,7 +483,7 @@ public class ExceptionsTest {
 	}
 
 	@Test
-	public void unwrapMultipleWithTracebackAndFilterItOut() {
+	public void unwrapMultipleExcludingWithTraceback() {
 		Mono<String> errorMono1 = Mono.error(new IllegalStateException("expected1"));
 		Mono<String> errorMono2 = Mono.error(new IllegalStateException("expected2"));
 		Mono<Throwable> mono = Mono.zipDelayError(errorMono1, errorMono2)
@@ -492,12 +493,37 @@ public class ExceptionsTest {
 		Throwable compositeException = mono.block();
 
 		List<Throwable> exceptions = Exceptions.unwrapMultiple(compositeException);
+		List<Throwable> filteredExceptions = Exceptions.unwrapMultipleExcluding(compositeException, Exceptions::isTraceback);
 
 		assertThat(exceptions).as("unfiltered composite has traceback")
-		                      .hasSize(3)
-		                      .filteredOn(e -> !Exceptions.isTraceback(e))
+		                      .hasSize(3);
+
+		assertThat(exceptions).filteredOn(e -> !Exceptions.isTraceback(e))
 		                      .as("filtered out tracebacks")
+		                      .containsExactlyElementsOf(filteredExceptions)
 		                      .hasSize(2)
 		                      .hasOnlyElementsOfType(IllegalStateException.class);
+	}
+
+	@Test
+	public void unwrapMultipleExcluding() {
+		Throwable notUnwrapped = new RuntimeException("notUnwrapped");
+
+		Throwable component1 = new RuntimeException("filtered");
+		Throwable component2 = new IllegalStateException("kept");
+		Throwable component3 = new IllegalStateException("whatever");
+
+		Predicate<Throwable> exclude = t -> "filtered".equals(t.getMessage()) ||
+				(t instanceof IllegalStateException && !"kept".equals(t.getMessage()));
+
+		Throwable wrapped = Exceptions.multiple(component1, component2, component3);
+
+		List<Throwable> nullCase = Exceptions.unwrapMultipleExcluding(null, exclude);
+		List<Throwable> notCompositeCase = Exceptions.unwrapMultipleExcluding(notUnwrapped, exclude);
+		List<Throwable> compositeCase = Exceptions.unwrapMultipleExcluding(wrapped, exclude);
+
+		assertThat(nullCase).as("null case").isEmpty();
+		assertThat(notCompositeCase).as("not composite case").containsExactly(notUnwrapped);
+		assertThat(compositeCase).as("composite case").containsExactly(component2);
 	}
 }
