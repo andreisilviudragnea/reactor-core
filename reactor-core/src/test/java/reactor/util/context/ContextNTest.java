@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
@@ -415,6 +416,16 @@ public class ContextNTest {
 		assertThat(c.size()).isEqualTo(6);
 
 		assertThat(c.put("sizeGrows", "yes").size()).isEqualTo(7);
+	}
+
+
+	@Test
+	public void streamHasCleanToString() {
+		assertThat(c.toString()).as("toString").isEqualTo("ContextN{1=A, 2=B, 3=C, 4=D, 5=E, 6=F}");
+
+		assertThat(c.stream().map(Objects::toString).collect(Collectors.joining(", ")))
+				.as("stream elements representation")
+				.isEqualTo("1=A, 2=B, 3=C, 4=D, 5=E, 6=F");
 	}
 
 }
